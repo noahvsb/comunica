@@ -1,5 +1,9 @@
-import type { IActorContextPreprocessOutput, IActorContextPreprocessArgs } from '@comunica/bus-context-preprocess';
-import { ActorContextPreprocess } from '@comunica/bus-context-preprocess';
+import {
+  ActorOptimizeQueryOperation,
+  type IActionOptimizeQueryOperation,
+  type IActorOptimizeQueryOperationArgs,
+  type IActorOptimizeQueryOperationOutput,
+} from '@comunica/bus-optimize-query-operation';
 import { KeysQueryOperation, KeysQuerySourceIdentify } from '@comunica/context-entries';
 import type { IActorTest, IAction, TestResult } from '@comunica/core';
 import { passTestVoid } from '@comunica/core';
@@ -8,10 +12,10 @@ import { QuerySourceSkolemized } from './QuerySourceSkolemized';
 import { getSourceId } from './utils';
 
 /**
- * A comunica Query Source Skolemize Context Preprocess Actor.
+ * A comunica Query Source Skolemize Optimize Query Operation Actor.
  */
-export class ActorContextPreprocessQuerySourceSkolemize extends ActorContextPreprocess {
-  public constructor(args: IActorContextPreprocessArgs) {
+export class ActorOptimizeQueryOperationQuerySourceSkolemize extends ActorOptimizeQueryOperation {
+  public constructor(args: IActorOptimizeQueryOperationArgs) {
     super(args);
   }
 
@@ -19,7 +23,8 @@ export class ActorContextPreprocessQuerySourceSkolemize extends ActorContextPrep
     return passTestVoid();
   }
 
-  public async run(action: IAction): Promise<IActorContextPreprocessOutput> {
+  public async run(action: IActionOptimizeQueryOperation): Promise<IActorOptimizeQueryOperationOutput> {
+    const operation = action.operation;
     let context = action.context;
 
     // Wrap sources in skolemized sources
@@ -38,6 +43,6 @@ export class ActorContextPreprocessQuerySourceSkolemize extends ActorContextPrep
       context = context.set(KeysQueryOperation.querySources, sources);
     }
 
-    return { context };
+    return { operation, context };
   }
 }

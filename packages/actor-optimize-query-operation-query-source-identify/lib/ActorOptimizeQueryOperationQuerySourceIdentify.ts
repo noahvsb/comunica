@@ -1,10 +1,15 @@
 import type {
-  IActorContextPreprocessOutput,
-  IActorContextPreprocessArgs,
   MediatorContextPreprocess,
 } from '@comunica/bus-context-preprocess';
-import { ActorContextPreprocess } from '@comunica/bus-context-preprocess';
 import type { ActorHttpInvalidateListenable, IActionHttpInvalidate } from '@comunica/bus-http-invalidate';
+import {
+  ActorOptimizeQueryOperation,
+} from '@comunica/bus-optimize-query-operation';
+import type {
+  IActionOptimizeQueryOperation,
+  IActorOptimizeQueryOperationArgs,
+  IActorOptimizeQueryOperationOutput,
+} from '@comunica/bus-optimize-query-operation';
 import type { MediatorQuerySourceIdentify } from '@comunica/bus-query-source-identify';
 import { KeysInitQuery, KeysQueryOperation, KeysStatistics } from '@comunica/context-entries';
 import type { IAction, IActorTest, TestResult } from '@comunica/core';
@@ -21,16 +26,16 @@ import type {
 import { LRUCache } from 'lru-cache';
 
 /**
- * A comunica Query Source Identify Context Preprocess Actor.
+ * A comunica Query Source Identify Optimize Query Operation Actor.
  */
-export class ActorContextPreprocessQuerySourceIdentify extends ActorContextPreprocess {
+export class ActorOptimizeQueryOperationQuerySourceIdentify extends ActorOptimizeQueryOperation {
   public readonly cacheSize: number;
   public readonly httpInvalidator: ActorHttpInvalidateListenable;
   public readonly mediatorQuerySourceIdentify: MediatorQuerySourceIdentify;
   public readonly mediatorContextPreprocess: MediatorContextPreprocess;
   public readonly cache?: LRUCache<string, Promise<IQuerySourceWrapper>>;
 
-  public constructor(args: IActorContextPreprocessQuerySourceIdentifyArgs) {
+  public constructor(args: IActorOptimizeQueryOperationQuerySourceIdentifyArgs) {
     super(args);
     this.cache = this.cacheSize ? new LRUCache<string, any>({ max: this.cacheSize }) : undefined;
     const cache = this.cache;
@@ -45,7 +50,8 @@ export class ActorContextPreprocessQuerySourceIdentify extends ActorContextPrepr
     return passTestVoid();
   }
 
-  public async run(action: IAction): Promise<IActorContextPreprocessOutput> {
+  public async run(action: IActionOptimizeQueryOperation): Promise<IActorOptimizeQueryOperationOutput> {
+    const operation = action.operation;
     let context = action.context;
 
     // Rewrite sources
@@ -76,7 +82,7 @@ export class ActorContextPreprocessQuerySourceIdentify extends ActorContextPrepr
         .set(KeysQueryOperation.querySources, querySources);
     }
 
-    return { context };
+    return { operation, context };
   }
 
   public async expandSource(querySource: QuerySourceUnidentified): Promise<QuerySourceUnidentifiedExpanded> {
@@ -118,7 +124,7 @@ export class ActorContextPreprocessQuerySourceIdentify extends ActorContextPrepr
   }
 }
 
-export interface IActorContextPreprocessQuerySourceIdentifyArgs extends IActorContextPreprocessArgs {
+export interface IActorOptimizeQueryOperationQuerySourceIdentifyArgs extends IActorOptimizeQueryOperationArgs {
   /**
    * The maximum number of entries in the LRU cache, set to 0 to disable.
    * @range {integer}

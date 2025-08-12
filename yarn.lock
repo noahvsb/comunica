@@ -395,6 +395,35 @@
     "@comunica/core" "^2.10.0"
     readable-stream "^4.4.2"
 
+"@comunica/actor-context-preprocess-query-source-identify@^4.2.0":
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/@comunica/actor-context-preprocess-query-source-identify/-/actor-context-preprocess-query-source-identify-4.2.0.tgz#5d5ad7d4e5c3bd299ce984575571c5bb0ee8124a"
+  integrity sha512-5Y1FgCjDxuZVdaHFeBr71pIcDO++kIuHEiXqSi2JN4JjAv/if7Ds2Y7xkyU5c3Ql9Qh5G7rkFZ37jvpW+hiu/g==
+  dependencies:
+    "@comunica/bus-context-preprocess" "^4.2.0"
+    "@comunica/bus-http-invalidate" "^4.2.0"
+    "@comunica/bus-query-source-identify" "^4.2.0"
+    "@comunica/context-entries" "^4.2.0"
+    "@comunica/core" "^4.2.0"
+    "@comunica/types" "^4.2.0"
+    lru-cache "^10.0.0"
+
+"@comunica/actor-context-preprocess-query-source-skolemize@^4.2.0":
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/@comunica/actor-context-preprocess-query-source-skolemize/-/actor-context-preprocess-query-source-skolemize-4.2.0.tgz#f726f4ce5a61de16d6311c7f84e3e47320262bf0"
+  integrity sha512-5QL1DI0vBeCRDJItM1LfM+vk1G2kUi1CpSb4uAwaa8o8hkwdExtWXguPp+w8GCk/h5ot4P23vgWgwZTZ3nwW2A==
+  dependencies:
+    "@comunica/bus-context-preprocess" "^4.2.0"
+    "@comunica/context-entries" "^4.2.0"
+    "@comunica/core" "^4.2.0"
+    "@comunica/types" "^4.2.0"
+    "@comunica/utils-data-factory" "^4.0.1"
+    "@comunica/utils-metadata" "^4.2.0"
+    "@rdfjs/types" "*"
+    asynciterator "^3.9.0"
+    rdf-terms "^1.11.0"
+    sparqlalgebrajs "^4.3.8"
+
 "@comunica/actor-http-fetch@^2.0.1":
   version "2.10.2"
   resolved "https://registry.npmjs.org/@comunica/actor-http-fetch/-/actor-http-fetch-2.10.2.tgz"

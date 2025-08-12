@@ -1,21 +1,27 @@
 import { KeysQueryOperation, KeysQuerySourceIdentify } from '@comunica/context-entries';
 import { ActionContext, Bus } from '@comunica/core';
-import { ActorContextPreprocessQuerySourceSkolemize } from '../lib/ActorContextPreprocessQuerySourceSkolemize';
+import { type Algebra, Factory } from 'sparqlalgebrajs';
+import { ActorOptimizeQueryOperationQuerySourceSkolemize,
+} from '../lib/ActorOptimizeQueryOperationQuerySourceSkolemize';
 import { QuerySourceSkolemized } from '../lib/QuerySourceSkolemized';
 import '@comunica/utils-jest';
 
-describe('ActorContextPreprocessQuerySourceSkolemize', () => {
+const AF = new Factory();
+
+describe('ActorOptimizeQueryOperationQuerySourceSkolemize', () => {
   let bus: any;
+  let operationIn: Algebra.Operation;
 
   beforeEach(() => {
     bus = new Bus({ name: 'bus' });
+    operationIn = AF.createNop();
   });
 
-  describe('An ActorContextPreprocessQuerySourceSkolemize instance', () => {
-    let actor: ActorContextPreprocessQuerySourceSkolemize;
+  describe('An ActorOptimizeQueryOperationQuerySourceSkolemize instance', () => {
+    let actor: ActorOptimizeQueryOperationQuerySourceSkolemize;
 
     beforeEach(() => {
-      actor = new ActorContextPreprocessQuerySourceSkolemize({ name: 'actor', bus });
+      actor = new ActorOptimizeQueryOperationQuerySourceSkolemize({ name: 'actor', bus });
     });
 
     it('should test', async() => {
@@ -25,7 +31,7 @@ describe('ActorContextPreprocessQuerySourceSkolemize', () => {
     describe('run', () => {
       it('with an empty context', async() => {
         const contextIn = new ActionContext();
-        const { context: contextOut } = await actor.run({ context: contextIn });
+        const { context: contextOut } = await actor.run({ context: contextIn, operation: operationIn });
         expect(contextOut).toEqual(new ActionContext({}));
       });
 
@@ -43,7 +49,7 @@ describe('ActorContextPreprocessQuerySourceSkolemize', () => {
             source2,
           ],
         });
-        const { context: contextOut } = await actor.run({ context: contextIn });
+        const { context: contextOut } = await actor.run({ context: contextIn, operation: operationIn });
 
         expect(contextOut).toEqual(new ActionContext({
           [KeysQuerySourceIdentify.sourceIds.name]: new Map([
