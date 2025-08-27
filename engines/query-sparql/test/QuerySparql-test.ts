@@ -1625,6 +1625,109 @@ WHERE {
         ]);
       });
     });
+
+    describe('catch timeout errors', () => {
+      const endpoint = 'http://example.org/';
+      let fetchFinished = false;
+
+      beforeEach(async() => {
+        await engine.invalidateHttpCache();
+      });
+
+      it('without httpBodyTimeout', async() => {
+        const timeout = 1;
+        let errorMessage = 'no error';
+
+        try {
+          await engine.queryBindings(`SELECT * WHERE {
+        ?s ?p ?o
+      }`, {
+            sources: [ endpoint ],
+            httpTimeout: timeout,
+            fetch: async(input: any, init?: any) => {
+              const response = await fetch(input, init);
+              fetchFinished = true;
+              return response;
+            },
+          });
+        } catch (error) {
+          errorMessage = (<Error> error).message;
+        }
+
+        expect(fetchFinished).toBeFalsy();
+        expect(errorMessage).toBe(`Fetch timed out for ${endpoint} after ${timeout} ms`);
+      }, 2000);
+
+      it('with httpBodyTimeout', async() => {
+        const timeout = 35;
+        const caughtErrorMessages: string[] = [];
+        let fetchFinished = false;
+
+        let resolveAbort: (msg: string) => void;
+        const abortSeen = new Promise<string>(r => (resolveAbort = r));
+
+        const bindingsStream = await engine.queryBindings(`SELECT * WHERE {
+        ?s ?p ?o
+      }`, {
+          sources: [ endpoint ],
+          httpTimeout: timeout,
+          httpBodyTimeout: true,
+          fetch: async(_input: any, init?: RequestInit): Promise<Response> => {
+            // Link abort stuff
+            const signal = init?.signal;
+            if (signal) {
+              signal.addEventListener(
+                'abort',
+                () => {
+                  const reason: unknown = (<any> signal).reason;
+                  const msg =
+                    reason instanceof Error ?
+                      reason.message :
+                      typeof reason === 'string' ?
+                        reason :
+                        'aborted';
+                  resolveAbort(msg);
+                },
+                { once: true },
+              );
+            }
+
+            const dripStream = new ReadableStream({
+              async start(controller) {
+                for (let i = 0; i < 10; i++) {
+                  controller.enqueue(new TextEncoder().encode(`<s> <p> "drip${i}" <g> .`));
+                  await new Promise(r => setTimeout(r, 5));
+                }
+                controller.close();
+              },
+            });
+            const response = new Response(dripStream, {
+              status: 200,
+              headers: { 'Content-Type': 'application/n-quads' },
+            });
+            fetchFinished = true;
+            return response;
+          },
+        });
+
+        const abortMsg = await Promise.race<string>([
+          abortSeen,
+          new Promise<string>(resolve => setTimeout(() => resolve('NO_ABORT_FIRED'), timeout * 5)),
+        ]);
+
+        await new Promise((resolve) => {
+          bindingsStream.on('data', () => {});
+          bindingsStream.on('end', resolve);
+          bindingsStream.on('error', (error) => {
+            caughtErrorMessages.push((<Error> error).message);
+          });
+        });
+
+        expect(fetchFinished).toBeTruthy();
+        expect(abortMsg).toBe(`Fetch timed out for ${endpoint} after ${timeout} ms`);
+        expect(caughtErrorMessages).toHaveLength(0);
+      }, 2000);
+    });
   });
 
   // We skip these tests in browsers due to CORS issues
