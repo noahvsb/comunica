@@ -1701,11 +1701,42 @@ WHERE {
           });
         });
 
-        await new Promise(resolve => setTimeout(resolve, timeout * 5));
+        expect(fetchFinished).toBeTruthy();
+        expect(caughtErrorMessages).toHaveLength(0);
+        expect(i).toBe(10);
+      }, 2000);
+
+      it('with httpbun (temporary)', async() => {
+        const timeout = 5000;
+        const caughtErrorMessages: string[] = [];
+        let fetchFinished = false;
+
+        const bindingsStream = await engine.queryBindings(`SELECT * WHERE {
+        ?s ?p ?o
+      }`, {
+          sources: [ 'http://httpbun.com/drip?duration=5' ],
+          httpTimeout: timeout,
+          httpBodyTimeout: true,
+          fetch: async(input: any, init?: any) => {
+            const response = await fetch(input, init);
+            fetchFinished = true;
+            return response;
+          },
+        });
+
+        await new Promise((resolve) => {
+          bindingsStream.on('data', (_bindings: Bindings) => {
+            expect(true).toBeFalsy();
+          });
+          bindingsStream.on('end', resolve);
+          bindingsStream.on('error', (error) => {
+            caughtErrorMessages.push((<Error> error).message);
+          });
+        });
 
         expect(fetchFinished).toBeTruthy();
         expect(caughtErrorMessages).toHaveLength(0);
-      }, 2000);
+      });
     });
   });
 
